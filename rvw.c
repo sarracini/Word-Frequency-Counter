@@ -25,16 +25,24 @@ FILE *file;
 char buff[1000];
 WordArray words[10000];
 FileArray files[3];
+FileArray finalArray[101];
+
+int compareWords(const void *freq1, const void *freq2){
+	WordArray *a = (WordArray *)freq1;
+	WordArray *b = (WordArray *)freq2;
+
+	return (b->frequency - a->frequency);
+}
 
 int main(int argc, char *argv[]){
 
 	int wordCount = 0;
-	int isUnique = 0;
-	int arguments;
+	int isUnique = -1;
+	int counter = 0;
 
 	for (int i = 1; i < argc; i++){
 		if ( argc < 2){
-			printf("usage %s filename", argv[0] );
+			printf("usage %s filename invalid", argv[i] );
 		}
 
 		else{
@@ -44,32 +52,49 @@ int main(int argc, char *argv[]){
 				printf("Couldn't open file\n");
 			}
 			else {
-				while (fscanf(file, "%s", buff) != EOF)
+				while ( (fscanf(file, "%s", buff)) != EOF)
 				{
 					wordCount++;
-					printf("%s\n", buff);
-					for (int k = 0; k < 300; k++){
+					//printf("%s\n", buff);
+					for (int k = 0; k < counter; k++){
 						if (strcmp(words[k].word, buff) == 0){
-							isUnique = 1;
+							isUnique = k;
 						}
-						if (isUnique != 1){
-							strcpy(words[k].word, buff);
-							words[k].frequency++;
+						if (isUnique == -1){
+							strcpy(words[counter].word, buff);
+							words[counter].frequency = 1;
+							counter++;
 						}
 						else {
-							words[k].frequency++;
+							words[isUnique].frequency++;
 						}
 					}
-				}
-			
-			fclose(file);
+				}	
 			}
 		}
+		qsort(words, counter, sizeof(WordArray), compareWords);
+
+		for (int m = 0; m < 3; m++){
+			finalArray[i].file[m] = words[m];
+		}
+		finalArray[i].frequency = counter;
+		strcpy(finalArray[i].fileName, argv[i]);
+		fclose(file);
+	}
+
+	//qsort(finalFileArray, i, sizeof(FileArray), )
+	for (int j = 1; j < 4; j++){
+		if (finalArray[j].file[j].word != NULL){
+			printf(" FileName: %s ", finalArray[j].fileName);
+			printf(" Unique Words: %d", finalArray[j].frequency);
+			for (int l = 0; l < 3; l++){
+				printf(" Word: %s", finalArray[j].file[l].word);
+			}
+			
+		}
+		printf("\n");
+		
 	}		
 	
-	
-	printf("%s ", argv[1]);
-	printf("%d \n", wordCount);
-
 	return 0;
 }
