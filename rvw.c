@@ -62,7 +62,8 @@ int main(int argc, char *argv[]){
 					isUnique = -1;
 
 					// String comparison - to check if the word is already in the array
-					for (int k = 0; k < counter; k++){
+					int k;
+					for (k = 0; k < counter; k++){
 						if (strcmp(words[k].word, buff) == 0){
 							isUnique = k;
 						}
@@ -85,7 +86,8 @@ int main(int argc, char *argv[]){
 		qsort(words, counter, sizeof(WordArray), compareWords);
 
 		// Store top 3 most frequent words
-		for (int m = 0; m < 3; m++){
+		int m;
+		for (m = 0; m < 3; m++){
 			finalArray[i].file[m] = words[m];
 		}
 		finalArray[i].frequency = counter;
@@ -96,7 +98,8 @@ int main(int argc, char *argv[]){
 		if (finalArray[i].file[i].word != NULL){
 			printf("FileName: %s ", finalArray[i].fileName);
 			printf(" Unique Words: %d\n", finalArray[i].frequency);
-			for (int l = 0; l < 3; l++){
+			int l;
+			for (l = 0; l < 3; l++){
 				printf("Word%d: '%s' occurs %d times.\n", l+1, finalArray[i].file[l].word, words[l].frequency);
 			}
 		}
