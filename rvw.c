@@ -39,9 +39,7 @@ int main(int argc, char *argv[]){
 	int isUnique;
 	int i;
 
-
 	for (i = 1; i < argc; i++){
-			
 		FILE *file;
 		char buff[1000];
 		counter = 0;
