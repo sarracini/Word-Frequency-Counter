@@ -24,6 +24,8 @@ typedef struct {
 } FileArray ;
 
 FileArray finalArray[101];
+WordArray words[10000];
+FileArray files[3];
 
 int compareWords(const void *f1, const void *f2){
 	WordArray *a = (WordArray *)f1;
@@ -37,12 +39,11 @@ int main(int argc, char *argv[]){
 	int isUnique;
 	int i;
 
+
 	for (i = 1; i < argc; i++){
 			
 		FILE *file;
 		char buff[1000];
-		WordArray words[10000];
-		FileArray files[3];
 		counter = 0;
 
 		// Check if user has inputed correct amount of arguments
@@ -80,6 +81,7 @@ int main(int argc, char *argv[]){
 					}	
 				}	
 			}
+				
 		}
 		// Sort the words to find most frequent words
 		qsort(words, counter, sizeof(WordArray), compareWords);
@@ -91,19 +93,17 @@ int main(int argc, char *argv[]){
 		finalArray[i].frequency = counter;
 		strcpy(finalArray[i].fileName, argv[i]);
 		fclose(file);
-	}
 
-	// Display results
-	for (int j = 1; j < i; j++){
-		if (finalArray[j].file[j].word != NULL){
-			printf("FileName: %s ", finalArray[j].fileName);
-			printf(" Unique Words: %d", finalArray[j].frequency);
+		// Display results	
+		if (finalArray[i].file[i].word != NULL){
+			printf("FileName: %s ", finalArray[i].fileName);
+			printf(" Unique Words: %d\n", finalArray[i].frequency);
 			for (int l = 0; l < 3; l++){
-				printf(" Word%d: %s", l+1, finalArray[j].file[l].word);
+				printf("Word%d: '%s' occurs %d times.\n", l+1, finalArray[i].file[l].word, words[l].frequency);
 			}
 		}
 		printf("\n");
-	}		
-	
+	}
+
 	return 0;
 }
