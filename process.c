@@ -24,22 +24,15 @@ typedef struct {
 
 WordArray words[10000];
 
-int counter = 0;
-
 int compareWords(const void *f1, const void *f2){
 	WordArray *a = (WordArray *)f1;
 	WordArray *b = (WordArray *)f2;
 	return (b->frequency - a->frequency);
 }
-char *countWords(char *fileName){
-	char a[100];
-	sprintf(a, "%d", counter);
-	char * tmp = (char*)a;
-	return tmp;
-}
 
 char *countFrequency(char *fileName){
 	
+	int counter = 0;
 	int isUnique;
 	int i;
 	FILE *file;
@@ -83,31 +76,35 @@ int main(int argc, char *argv[]){
 	int fd[argc-1][2];
 	pid_t child;
 	char *buff = (char*)malloc(sizeof(char));
-	char *tmp = (char*)malloc(sizeof(char));
 	char *res = (char*)malloc(sizeof(char));
 	int i, j, k;
 
 	for (i = 1; i <= argc -1; i++){
+		// Create a new pipe and fork one child per argument passed in by user
 		pipe(fd[i]);
 		child = fork();
 
 		if (child < 0){
 			perror("Error");
 		}
+		// Child process sends each file's 3 most frequent words to parent
 		else if (child == 0){
 			res = countFrequency(argv[i]);
-			write(fd[i][1], res, (strlen(res) +1) );
-			close(fd[i][1]);
+			close(fd[i][READ]);
+			write(fd[i][WRITE], res, (strlen(res) +1) );
+			close(fd[i][WRITE]);
 			exit(0);
 		}
 	}
-
+	// Wait for children to return to parent
 	for(k = 1; k <= argc - 1; k++){
 		wait(NULL);
 	}
+	// Parent process reads from child process and prints out results
 	for(j = 1; j <= argc - 1; j++){
-			close(fd[j][1]);
-			read(fd[j][0], buff, sizeof(char*)* (strlen(buff) + 100000) );
+			close(fd[j][WRITE]);
+			read(fd[j][READ], buff, sizeof(char*)* (strlen(buff) + 100000) );
+			close(fd[j][READ]);
 			printf("%s\n", buff);
 	}
 		
