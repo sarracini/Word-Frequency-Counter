@@ -15,10 +15,11 @@ $ gcc rvw.c
 Run with:
 
 ``` sh
-$ ./a.out 'filename' 'filename' 
+$ ./a.out 'filename1' 'filename2' ...
 ```
 ## Notes
-dataset1.txt dataset2.txt dataset3.txt are given for your reference. To check accuracy, you may use the following Unix commands:<br/>
+dataset1.txt dataset2.txt dataset3.txt are given for your reference. To check accuracy, you may use the following Unix commands:
+
 To show how many distinct words in file ‘dataset1.txt’:
 ``` sh
 $ cat dataset1.txt | tr -s ' \t' '\n\n' | tr -d '\t' | grep -v '^$'| sort | uniq -c  | wc -l
