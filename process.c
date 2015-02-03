@@ -14,6 +14,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#define READ 0
+#define WRITE 1
+
 // A structure for the words
 typedef struct {
 	char word[101];
@@ -28,15 +31,14 @@ int compareWords(const void *f1, const void *f2){
 	return (b->frequency - a->frequency);
 }
 
-char *countFreq(char *string){
-	int counter;
+char *countFrequency(char *fileName){
+	int counter = 0;
 	int isUnique;
 	int i;
 	FILE *file;
 	char buff[1000];
-	counter = 0;
 	
-	file = fopen(string, "r");
+	file = fopen(fileName, "r");
 	while ( (fscanf(file, "%s", buff)) != EOF)
 	{
 		isUnique = -1;
@@ -63,52 +65,41 @@ char *countFreq(char *string){
 	qsort(words, counter, sizeof(WordArray), compareWords);
 
 	// Store the 3 more frequent words as the result, as a single string
-	char *result = malloc(1000);
-	snprintf(result, 100, "%s %d %s %s %s", string, counter, words[0].word, words[1].word, words[2].word);
+	char *result = (char*)malloc(sizeof(result));
+	snprintf(result, 100, "%s %d %s %s %s", fileName, counter, words[0].word, words[1].word, words[2].word);
 	fclose(file);
 	return result;
 }
 
 int main(int argc, char *argv[]){
 
-	int fd[2];
-	int fde[2];
+	int fd[argc-1][2];
 	pid_t child;
-	char buff[100];
-	char tmpbuff[100];
-	pipe(fd);
-	pipe(fde);
+	char *buff = (char*)malloc(sizeof(char));
+	char *res = (char*)malloc(sizeof(char));
 	
 	int i;
-	for (i = 1; i <= argc - 1; i++){
+	for (i = 1; i <= argc -1; i++){
+		pipe(fd[i]);
 		child = fork();
-		write(fd[1], argv[i], 100);
-	}
 
-	if (child < 0){
-		perror("Error");
+		if (child < 0){
+			perror("Error");
+		}
+		else if (child > 0){
+			close(fd[i][1]);
+			read(fd[i][0], buff, sizeof(char*)* (strlen(buff) + 100000) );
+			printf("%s\n", buff);
+		}
+		else{
+			//close(fd[i][0]);
+			res = countFrequency(argv[i]);
+			write(fd[i][1], res, (strlen(res) +1) );
+			close(fd[i][1]);
+			exit(0);
+		}
 	}
-	else if (child > 0){
-		close(fd[0]);
-		close(fde[1]);
-		read(fde[0], tmpbuff, 100);
-		printf("%s\n", tmpbuff);
 		
-		// parent stuff
-	}
-	else {
-		close(fd[1]);
-		close(fde[0]);
-		read(fd[0], buff, 100);
-		char *res = countFreq(buff);
-		write(fde[1], res, 100);
-		exit(0);
-		//child stuff
-	}
-
-
-	
-	
 
 	return 0;
 }
