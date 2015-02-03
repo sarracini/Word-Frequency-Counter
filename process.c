@@ -17,7 +17,6 @@
 #define READ 0
 #define WRITE 1
 
-// A structure for the words
 typedef struct {
 	char word[101];
 	int frequency;
@@ -25,14 +24,22 @@ typedef struct {
 
 WordArray words[10000];
 
+int counter = 0;
+
 int compareWords(const void *f1, const void *f2){
 	WordArray *a = (WordArray *)f1;
 	WordArray *b = (WordArray *)f2;
 	return (b->frequency - a->frequency);
 }
+char *countWords(char *fileName){
+	char a[100];
+	sprintf(a, "%d", counter);
+	char * tmp = (char*)a;
+	return tmp;
+}
 
 char *countFrequency(char *fileName){
-	int counter = 0;
+	
 	int isUnique;
 	int i;
 	FILE *file;
@@ -66,19 +73,20 @@ char *countFrequency(char *fileName){
 
 	// Store the 3 more frequent words as the result, as a single string
 	char *result = (char*)malloc(sizeof(result));
-	snprintf(result, 100, "%s %d %s %s %s", fileName, counter, words[0].word, words[1].word, words[2].word);
+	snprintf(result, 100000, "%s %d %s %s %s", fileName, counter, words[0].word, words[1].word, words[2].word);
 	fclose(file);
 	return result;
 }
 
 int main(int argc, char *argv[]){
-
+	
 	int fd[argc-1][2];
 	pid_t child;
 	char *buff = (char*)malloc(sizeof(char));
+	char *tmp = (char*)malloc(sizeof(char));
 	char *res = (char*)malloc(sizeof(char));
-	
-	int i;
+	int i, j, k;
+
 	for (i = 1; i <= argc -1; i++){
 		pipe(fd[i]);
 		child = fork();
@@ -86,21 +94,23 @@ int main(int argc, char *argv[]){
 		if (child < 0){
 			perror("Error");
 		}
-		else if (child > 0){
-			close(fd[i][1]);
-			read(fd[i][0], buff, sizeof(char*)* (strlen(buff) + 100000) );
-			printf("%s\n", buff);
-		}
-		else{
-			//close(fd[i][0]);
+		else if (child == 0){
 			res = countFrequency(argv[i]);
 			write(fd[i][1], res, (strlen(res) +1) );
 			close(fd[i][1]);
 			exit(0);
 		}
 	}
-		
 
+	for(k = 1; k <= argc - 1; k++){
+		wait(NULL);
+	}
+	for(j = 1; j <= argc - 1; j++){
+			close(fd[j][1]);
+			read(fd[j][0], buff, sizeof(char*)* (strlen(buff) + 100000) );
+			printf("%s\n", buff);
+	}
+		
 	return 0;
 }
 
