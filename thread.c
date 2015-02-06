@@ -9,17 +9,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <pthread.h>
 
 typedef struct {
 	char word[101];
 	int frequency;
 } WordArray ;
-
-WordArray words[10000];
 
 int compareWords(const void *f1, const void *f2){
 	WordArray *a = (WordArray *)f1;
@@ -29,13 +24,22 @@ int compareWords(const void *f1, const void *f2){
 
 void *countFrequency(void *arg){
 	
-	char *fileName = (char*)arg;
+	char *fileName = (char*)malloc(sizeof(char*));
+	fileName = (char*)arg;
+	WordArray *words = (WordArray*)malloc(sizeof(WordArray));
+	char *result = (char*)malloc(sizeof(result));
 	int counter = 0;
 	int isUnique;
 	int i;
 	FILE *file;
 	char buff[1000];
 	
+	// Clear the array, so threads don't modify the program
+	for (i = 0; i < sizeof(WordArray); i++){
+		words[i].word[0] = '\0';
+		words[i].frequency = 0;
+	}
+
 	file = fopen(fileName, "r");
 	if (file == NULL){
 		printf("Couldn't open file: ");
@@ -62,16 +66,19 @@ void *countFrequency(void *arg){
 			// Increase frequency of non-unique words
 			else {
 				words[isUnique].frequency++;
-			}	
+			}
+			// Re-allocate memory for the array
+			words = realloc(words, (sizeof(*words) + i) * sizeof(WordArray));	
 		}
-	}	
+	}
+
 	// Sort the words to find most frequent words
 	qsort(words, counter, sizeof(WordArray), compareWords);
 
-	// Store the 3 more frequent words as the result, as a single string
-	char *result = (char*)malloc(sizeof(result));
+	// Store the 3 more frequent words as the result, as a single string and then print that string
 	snprintf(result, 100000, "%s %d %s %s %s", fileName, counter, words[0].word, words[1].word, words[2].word);
 	fclose(file);
+	printf("%s\n", result);
 	return NULL;
 }
 
@@ -83,14 +90,11 @@ int main(int argc, char *argv[]){
 
 	int i;
 	for (i = 1; i <= argc-1; i++){
-		pthread_create(&threads[i], &attr, countFrequency, argv[i]);
-		printf("I created a thread\n");
+		pthread_create(&threads[i], &attr, (void*) countFrequency, (void*) argv[i]);
 	}
 	for (i = 1; i <= argc-1; i++){
 		pthread_join(threads[i], NULL);
-		printf("I'm done joining threads\n");
 	}
-		
 	return 0;
 }
 
