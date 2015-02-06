@@ -22,7 +22,7 @@ typedef struct {
 	int frequency;
 } WordArray ;
 
-WordArray words[10000];
+WordArray words[1000];
 
 int compareWords(const void *f1, const void *f2){
 	WordArray *a = (WordArray *)f1;
@@ -34,9 +34,8 @@ char *countFrequency(char *fileName){
 	
 	int counter = 0;
 	int isUnique;
-	int i;
 	FILE *file;
-	char buff[1000];
+	char buff[10000];
 
 	file = fopen(fileName, "r");
 
@@ -72,8 +71,8 @@ char *countFrequency(char *fileName){
 	qsort(words, counter, sizeof(WordArray), compareWords);
 
 	// Store the 3 more frequent words as the result, as a single string
-	char *result = (char*)malloc(sizeof(result));
-	snprintf(result, 100000, "%s %d %s %s %s", fileName, counter, words[0].word, words[1].word, words[2].word);
+	char *result = (char*)malloc(sizeof(result)*100);
+	snprintf(result, 10000, "%s %d %s %s %s", fileName, counter, words[0].word, words[1].word, words[2].word);
 	fclose(file);
 	return result;
 }
@@ -88,7 +87,7 @@ int main(int argc, char *argv[]){
 
 	// Check if user has inputed correct amount of arguments
 	if (argc < 2){
-		fprintf(stderr, "usage %s filename invalid", argv[i]);
+		fprintf(stderr, "usage %s filename invalid", argv[1]);
 		exit(0);
 	}
 
