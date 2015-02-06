@@ -34,7 +34,7 @@ void *countFrequency(void *arg){
 	FILE *file;
 	char buff[1000];
 	
-	// Clear the array, so threads don't modify the program
+	// Clear the array, so threads don't modify the program after they've been created
 	for (i = 0; i < sizeof(WordArray); i++){
 		words[i].word[0] = '\0';
 		words[i].frequency = 0;
@@ -84,15 +84,19 @@ void *countFrequency(void *arg){
 
 int main(int argc, char *argv[]){
 	
+	// Declare threads and default attributes
 	pthread_t threads[argc-1];
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 
+	// Run all threads concurrently
 	int i;
-	for (i = 1; i <= argc-1; i++){
+	for (i = 1; i <= argc - 1; i++){
+		// Create a new thread for every argument passed in by the user, and count word frequency for each
 		pthread_create(&threads[i], &attr, (void*) countFrequency, (void*) argv[i]);
 	}
-	for (i = 1; i <= argc-1; i++){
+	for (i = 1; i <= argc - 1; i++){
+		// Join threads to avoid memory leaks
 		pthread_join(threads[i], NULL);
 	}
 	return 0;
