@@ -37,29 +37,36 @@ char *countFrequency(char *fileName){
 	int i;
 	FILE *file;
 	char buff[1000];
-	
-	file = fopen(fileName, "r");
-	while ( (fscanf(file, "%s", buff)) != EOF)
-	{
-		isUnique = -1;
 
-		// String comparison - to check if the word is already in the array
-		int k;
-		for (k = 0; k < counter; k++){
-			if (strcmp(words[k].word, buff) == 0){
-				isUnique = k;
+	file = fopen(fileName, "r");
+
+	if (file == NULL){
+		printf("Couldn't open file: ");
+	}
+	
+	else {
+		while ( (fscanf(file, "%s", buff)) != EOF)
+		{
+			isUnique = -1;
+
+			// String comparison - to check if the word is already in the array
+			int k;
+			for (k = 0; k < counter; k++){
+				if (strcmp(words[k].word, buff) == 0){
+					isUnique = k;
+				}
 			}
+			// If the string is not in the array, put it in the array
+			if (isUnique == -1){
+				strcpy(words[counter].word, buff);
+				words[counter].frequency = 1;
+				counter++;
+			}
+			// Increase frequency of non-unique words
+			else {
+				words[isUnique].frequency++;
+			}	
 		}
-		// If the string is not in the array, put it in the array
-		if (isUnique == -1){
-			strcpy(words[counter].word, buff);
-			words[counter].frequency = 1;
-			counter++;
-		}
-		// Increase frequency of non-unique words
-		else {
-			words[isUnique].frequency++;
-		}	
 	}	
 	// Sort the words to find most frequent words
 	qsort(words, counter, sizeof(WordArray), compareWords);
@@ -79,33 +86,42 @@ int main(int argc, char *argv[]){
 	char *res = (char*)malloc(sizeof(char));
 	int i, j, k;
 
-	for (i = 1; i <= argc -1; i++){
-		// Create a new pipe and fork one child per argument passed in by user
-		pipe(fd[i]);
-		child = fork();
+	// Check if user has inputed correct amount of arguments
+	if (argc < 2){
+		fprintf(stderr, "usage %s filename invalid", argv[i]);
+		exit(0);
+	}
 
-		if (child < 0){
-			perror("Error");
+	// If user has inputed correct amount of arguments, continue with execution
+	else {
+		for (i = 1; i <= argc -1; i++){
+			// Create a new pipe and fork one child per argument passed in by user
+			pipe(fd[i]);
+			child = fork();
+
+			if (child < 0){
+				perror("Error");
+			}
+			// Child process sends each file's 3 most frequent words to parent
+			else if (child == 0){
+				res = countFrequency(argv[i]);
+				close(fd[i][READ]);
+				write(fd[i][WRITE], res, (strlen(res) +1) );
+				close(fd[i][WRITE]);
+				exit(0);
+			}
 		}
-		// Child process sends each file's 3 most frequent words to parent
-		else if (child == 0){
-			res = countFrequency(argv[i]);
-			close(fd[i][READ]);
-			write(fd[i][WRITE], res, (strlen(res) +1) );
-			close(fd[i][WRITE]);
-			exit(0);
+		// Wait for children to return to parent
+		for(k = 1; k <= argc - 1; k++){
+			wait(NULL);
 		}
-	}
-	// Wait for children to return to parent
-	for(k = 1; k <= argc - 1; k++){
-		wait(NULL);
-	}
-	// Parent process reads from child process and prints out results
-	for(j = 1; j <= argc - 1; j++){
+		// Parent process reads from child process and prints out results
+		for(j = 1; j <= argc - 1; j++){
 			close(fd[j][WRITE]);
 			read(fd[j][READ], buff, sizeof(char*)* (strlen(buff) + 100000) );
 			close(fd[j][READ]);
 			printf("%s\n", buff);
+		}
 	}
 		
 	return 0;
